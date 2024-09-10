@@ -2,18 +2,35 @@
 
 import subprocess
 import requests
-import sys
+import logging
+import os
 
-# Replace these with your actual credentials
-PAGERDUTY_INTEGRATION_KEY = "<YOUR_PAGERDUTY_INTEGRATION_KEY>"
-WEBHOOK_URL = "<YOUR_MICROSOFT_TEAMS_WEBHOOK_URL>"
+# Configuration from environment variables
+PAGERDUTY_INTEGRATION_KEY = os.getenv("PAGERDUTY_INTEGRATION_KEY")
+WEBHOOK_URL = os.getenv("WEBHOOK_URL")
+
+# Ensure configuration is set
+if not PAGERDUTY_INTEGRATION_KEY or not WEBHOOK_URL:
+    raise ValueError("Environment variables PAGERDUTY_INTEGRATION_KEY and WEBHOOK_URL must be set.")
+
+# Set up logging
+logging.basicConfig(filename='service_status_checker.log', level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+
+def get_all_services():
+    try:
+        result = subprocess.run(['systemctl', 'list-units', '--type=service', '--state=active'], capture_output=True, text=True)
+        services = [line.split()[0] for line in result.stdout.splitlines() if line.startswith(' ') and '.service' in line]
+        return services
+    except Exception as e:
+        logging.error(f"Error getting list of services: {e}")
+        return []
 
 def get_service_status(service_name):
     try:
         result = subprocess.run(['systemctl', 'is-active', service_name], capture_output=True, text=True)
         return result.stdout.strip()
     except Exception as e:
-        print(f"Error checking service status: {e}", file=sys.stderr)
+        logging.error(f"Error checking service status: {e}")
         return None
 
 def send_notification(service_name):
@@ -25,7 +42,7 @@ def send_notification(service_name):
         response = requests.post(WEBHOOK_URL, json=payload)
         response.raise_for_status()
     except requests.RequestException as e:
-        print(f"Error sending Microsoft Teams notification: {e}", file=sys.stderr)
+        logging.error(f"Error sending Microsoft Teams notification: {e}")
 
     # Send incident to PagerDuty
     pagerduty_payload = {
@@ -45,15 +62,14 @@ def send_notification(service_name):
         pd_response = requests.post("https://events.pagerduty.com/v2/enqueue", json=pagerduty_payload)
         pd_response.raise_for_status()
     except requests.RequestException as e:
-        print(f"Error sending PagerDuty notification: {e}", file=sys.stderr)
+        logging.error(f"Error sending PagerDuty notification: {e}")
 
 def main():
-    services = ["nginx", "apache2", "mysql"]  # Add your services here
-    
+    services = get_all_services()
     for service in services:
         status = get_service_status(service)
         if status != "active":
-            print(f"Service {service} is down.")
+            logging.info(f"Service {service} is down.")
             send_notification(service)
 
 if __name__ == "__main__":
