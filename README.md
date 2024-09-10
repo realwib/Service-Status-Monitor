@@ -1,52 +1,55 @@
 # Service Status Monitor
 
-This repository contains a Python script to monitor the status of specified system services. The script checks if the services are running and sends notifications to Microsoft Teams and PagerDuty if any service is down.
+## Description
+
+`Service-Status-Monitor` is a Python script that monitors the status of all system services on a Unix-like system. If any service is found to be down, the script sends notifications via Microsoft Teams and PagerDuty.
 
 ## Features
 
-- Monitors the status of multiple system services.
-- Sends notifications to Microsoft Teams and PagerDuty when a service is down.
-- Customizable list of services to monitor.
+- Automatically detects and monitors all system services.
+- Sends alerts to Microsoft Teams when a service is down.
+- Creates PagerDuty incidents for any service failures.
+- Logs activities and errors for troubleshooting.
 
-## Prerequisites
+## Requirements
 
-Ensure you have Python 3 and the necessary libraries installed:
+- Python 3.x
+- `requests` library
+- `python-dotenv` library
 
-- `requests`
+## Installation
 
-You can install the required libraries using pip:
-
-```bash
-pip install requests
-```
-
-## Configuration
-
-1. **PagerDuty Integration Key:** Update the `PAGERDUTY_INTEGRATION_KEY` variable in the `service_status_checker.py` file with your PagerDuty integration key.
-
-2. **Microsoft Teams Webhook URL:** Update the `WEBHOOK_URL` variable in the `service_status_checker.py` file with your Microsoft Teams webhook URL.
-
-3. **Services List:** Modify the `services` list in the `main()` function of `service_status_checker.py` to include the services you want to monitor.
-
-## Usage
-
-1. **Clone the repository:**
+1. **Clone the Repository:**
 
     ```bash
     git clone https://github.com/realwib/Service-Status-Monitor.git
     cd Service-Status-Monitor
     ```
 
-2. **Install dependencies:**
+2. **Install Dependencies:**
 
     ```bash
-    pip install requests
+    pip install -r requirements.txt
     ```
 
-3. **Run the script:**
+3. **Configure Environment Variables:**
 
-    ```bash
-    python service_status.py
+    Configure the `.env` file in the root directory and add your credentials:
+
+    ```dotenv
+    PAGERDUTY_INTEGRATION_KEY=your_pagerduty_integration_key_here
+    WEBHOOK_URL=your_teams_webhook_url_here
     ```
 
-    The script will check the status of the specified services and send notifications if any service is found to be down.
+## Usage
+
+Run the script as follows:
+
+```bash
+python service_status_checker.py
+```
+The script will check the status of all active system services and send notifications if any are down.
+
+Logging
+The script logs its activities to service_status_checker.log. Check this file for detailed information about the script's operations and any issues encountered.
+
