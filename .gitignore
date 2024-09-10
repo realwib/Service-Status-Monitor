@@ -1,10 +1,9 @@
 # Python bytecode
-__pycache__/
 *.pyc
-*.pyo
+__pycache__/
+
+# Environment variables
+.env
 
 # Log files
 *.log
-
-# Environment files
-.env
