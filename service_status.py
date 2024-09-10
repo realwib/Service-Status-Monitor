@@ -4,14 +4,14 @@ import subprocess
 import requests
 import logging
 import os
+from dotenv import load_dotenv
 
-# Configuration from environment variables
+# Load environment variables from .env file
+load_dotenv()
+
+# Configuration
 PAGERDUTY_INTEGRATION_KEY = os.getenv("PAGERDUTY_INTEGRATION_KEY")
 WEBHOOK_URL = os.getenv("WEBHOOK_URL")
-
-# Ensure configuration is set
-if not PAGERDUTY_INTEGRATION_KEY or not WEBHOOK_URL:
-    raise ValueError("Environment variables PAGERDUTY_INTEGRATION_KEY and WEBHOOK_URL must be set.")
 
 # Set up logging
 logging.basicConfig(filename='service_status_checker.log', level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -34,6 +34,10 @@ def get_service_status(service_name):
         return None
 
 def send_notification(service_name):
+    if not PAGERDUTY_INTEGRATION_KEY or not WEBHOOK_URL:
+        logging.error("PagerDuty or Microsoft Teams credentials are not set.")
+        return
+
     # Send notification to Microsoft Teams
     message = f"Service {service_name} is down."
     payload = {"text": message}
